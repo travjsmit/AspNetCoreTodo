@@ -18,6 +18,8 @@ internal class Program
             .AddEntityFrameworkStores<ApplicationDbContext>();
         builder.Services.AddControllersWithViews();
 
+        builder.Services.AddSingleton<ITodoItemService, FakeTodoItemService>(); 
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
