@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AspNetCoreTodo.Data;
 using AspNetCoreTodo.Models;
+using AspNetCoreTodo.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace AspNetCoreTodo.Services
@@ -17,7 +18,7 @@ namespace AspNetCoreTodo.Services
             _context = context;
         }
 
-        public async Task<TodoItem[]> GetIncompleteItemsAsync()
+        public async Task<TodoItem[]> GetIncompleteItemsAsync(ApplicationUser user)
         {
             return await _context.Items
                 .Where(x => x.IsDone == false)
