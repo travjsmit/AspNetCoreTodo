@@ -1,20 +1,45 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AspNetCoreTodo.Data;
 using AspNetCoreTodo.Models;
-using AspNetCoreTodo.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace AspNetCoreTodo.Services
 {
-    public interface ITodoItemService
+    public class TodoItemService : ITodoItemService
     {
-        Task<TodoItem[]> GetIncompleteItemsAsync(ApplicationUser user);
+        private readonly ApplicationDbContext _context;
+        public TodoItemService(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
-        Task<bool> AddItemAsync(TodoItem newItem);
+        public async Task<bool> AddItemAsync(TodoItem newItem, IdentityUser user)
+        {
+            newItem.Id = Guid.NewGuid();
+            newItem.IsDone = false;
+            newItem.DueAt = DateTimeOffset.Now.AddDays(3);
+            newItem.UserId = user.Id;
+            _context.Items.Add(newItem);
 
-        Task<bool> MarkDoneAsync(Guid id);
+            return await _context.SaveChangesAsync() == 1;
+
+        }
+        public async Task<TodoItem[]> GetIncompleteItemsAsync(IdentityUser currentUser)
+        {
+            return await _context.Items
+            .Where(item => item.IsDone == false && item.UserId == currentUser.Id)
+            .ToArrayAsync();
+        }
+        public async Task<bool> MarkDoneAsync(Guid id, IdentityUser user)
+        {
+            var item = await _context.Items.Where(x => x.Id == id).SingleOrDefaultAsync();
+
+            if (item == null) return false;
+
+            item.IsDone = true;
+
+            var saveResult = await _context.SaveChangesAsync();
+            return saveResult == 1; // One entity should have been updated
+        }
     }
 }
